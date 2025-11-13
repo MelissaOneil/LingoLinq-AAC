@@ -29,7 +29,7 @@ nvm alias default 20
 # Install CLIs globally with Node 20
 echo "Installing CLIs..."
 npm install -g @google/generative-ai-cli
-npm install -g @anthropic-ai/sdk
+npm install -g @anthropic-ai/claude-code
 
 # Ruby setup
 echo "Setting up Ruby gems..."

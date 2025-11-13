@@ -15,7 +15,7 @@
         "castwide.ruby-lsp",
         "rebornix.ruby",
         "bung87.ruby-rubocop",
-        "Anthropic.claude-dev"
+        "anthropic.claude-code"
       ]
     }
   },

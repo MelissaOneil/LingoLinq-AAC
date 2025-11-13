@@ -1,0 +1,9 @@
+# Production Procfile for Google Cloud Run
+# Runs both web server and background workers in single container
+
+# Web server (Puma) - responds to HTTP requests
+web: bundle exec puma -C config/puma.rb
+
+# Background workers (Resque) - processes all queues
+# Handles priority, default, slow, and whenever queues
+worker: env QUEUES=priority,default,slow,whenever INTERVAL=0.1 TERM_CHILD=1 bundle exec rake environment resque:work

@@ -1,0 +1,86 @@
+# Google Cloud Build configuration for Rails/Ember deployment to Cloud Run
+# Builds Docker image, runs migrations, and deploys to Cloud Run
+
+substitutions:
+  _PROJECT_ID: 'your-gcp-project-id'
+  _REGION: 'us-central1'
+  _SERVICE_NAME: 'lingolinq-web'
+  _CLOUD_SQL_CONNECTION_NAME: 'your-project:us-central1:your-db-instance'
+  _ARTIFACT_REGISTRY_REPO: 'lingolinq'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # Step 1: Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-image'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:latest'
+      - '--cache-from'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:latest'
+      - '.'
+
+  # Step 2: Push Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}'
+    waitFor: ['build-image']
+
+  # Step 3: Run database migrations
+  # This runs migrations as a one-off job before deploying the new version
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'run-migrations'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'jobs'
+      - 'execute'
+      - '${_SERVICE_NAME}-migrations'
+      - '--region=${_REGION}'
+      - '--wait'
+      - '--image=${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '--update-env-vars=RAILS_ENV=production,RACK_ENV=production'
+      - '--add-cloudsql-instances=${_CLOUD_SQL_CONNECTION_NAME}'
+      - '--command=bundle'
+      - '--args=exec,rails,db:migrate'
+    waitFor: ['push-image']
+
+  # Step 4: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-cloud-run'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'services'
+      - 'update'
+      - '${_SERVICE_NAME}'
+      - '--platform=managed'
+      - '--region=${_REGION}'
+      - '--image=${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '--min-instances=1'
+      - '--max-instances=10'
+      - '--memory=2Gi'
+      - '--cpu=2'
+      - '--timeout=300s'
+      - '--concurrency=80'
+      - '--port=8080'
+      - '--add-cloudsql-instances=${_CLOUD_SQL_CONNECTION_NAME}'
+      - '--allow-unauthenticated'
+    waitFor: ['run-migrations']
+
+# Images to store in Artifact Registry
+images:
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA'
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:latest'
+
+# Build timeout: 30 minutes (Ember build can be slow)
+timeout: 1800s

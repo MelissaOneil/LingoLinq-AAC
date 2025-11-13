@@ -1,0 +1,62 @@
+# Git files
+.git
+.github
+.gitignore
+.gitattributes
+
+# Environment and configuration
+.env
+.env.*
+!.env.example
+
+# Dependencies (will be installed during build)
+node_modules
+app/frontend/node_modules
+app/frontend/bower_components
+
+# Temporary files
+tmp
+log
+*.log
+coverage
+.byebug_history
+
+# Development files
+.DS_Store
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Test files
+spec/tmp
+test/tmp
+
+# Documentation
+README.md
+CONTRIBUTING.md
+CODE_INVESTIGATION.md
+TRANSLATIONS.md
+*.md
+
+# Build artifacts (will be rebuilt)
+public/assets
+app/frontend/dist
+app/frontend/tmp
+
+# Local configuration
+config/database.yml.local
+config/secrets.yml.local
+
+# MacOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Render-specific (not needed for Cloud Run)
+render.yaml
+
+# Development scripts
+bin/kill_all
+bin/fresh_start
