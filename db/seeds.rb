@@ -42,6 +42,7 @@ image_no = ButtonImage.process_new({
   },
   url: "http://deborahjones.theworldrace.org/blogphotos/theworldrace/deborahjones/no-1.jpg"
 }, {:user => user1, :download => false})
+
 sound1 = ButtonSound.process_new({
   url: "http://www.stephaniequinn.com/Music/Commercial%20DEMO%20-%2013.mp3"
 }, {:user => user1, :download => false})
@@ -172,6 +173,15 @@ board_yesno = Board.process_new({
     order: [[1,2]]
   }
 }, {user: user1, key: "yesno"})
+
+# Ensure button sets are generated for all created boards
+# This ensures the frontend can find button sets when creating boards with custom images
+puts "===== Generating Button Sets ====="
+[board1, board2, board3, board_yesno].each do |board|
+  board.reload
+  BoardDownstreamButtonSet.update_for(board.global_id, true)
+  puts "Generated button set for #{board.key}: #{board.board_downstream_button_set&.global_id}"
+end
 
 lat = 35.674831
 long = -108.0297416

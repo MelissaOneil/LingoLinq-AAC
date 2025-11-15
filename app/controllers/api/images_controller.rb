@@ -6,11 +6,19 @@ class Api::ImagesController < ApplicationController
     if !params['image'] || !params['image']['content_type']
       return api_error(400, {error: 'content type required for image creationg'})
     end
-    image = ButtonImage.process_new(params['image'], {:user => @api_user, :remote_upload_possible => true})
+
+    # Filter out blank button_id to prevent issues with ButtonImage.process_new
+    # if it expects a valid ID but receives an empty one.
+    processed_image_params = image_params
+    if processed_image_params[:button_id].blank?
+      processed_image_params.delete(:button_id)
+    end
+
+    image = ButtonImage.process_new(processed_image_params, {:user => @api_user, :remote_upload_possible => true})
     if !image || image.errored?
       api_error(400, {error: "image creation failed", errors: image && image.processing_errors})
     elsif !image.settings['content_type']
-      api_error(400, {error: 'content type required for image creationg'})
+      api_error(400, {error: 'content type required for image creation'})
     else
       render json: JsonApi::Image.as_json(image, :wrapper => true, :permissions => @api_user).to_json
     end
@@ -45,5 +53,11 @@ class Api::ImagesController < ApplicationController
     else
       api_error(400, {error: "image update failed", errors: image.processing_errors})
     end
+  end
+
+  private
+
+  def image_params
+    params.require(:image).permit(:content_type, :button_id, :url, :license => [:type])
   end
 end
