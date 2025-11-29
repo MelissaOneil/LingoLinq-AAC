@@ -6,20 +6,20 @@ import capabilities from './utils/capabilities';
 
 var use_push_state = !!(window.history && window.history.pushState);
 var check_full_screen = false;
-if(location.pathname.match(/^\/jasmine/)) {
+if (location.pathname.match(/^\/jasmine/)) {
   use_push_state = false;
-} else if(capabilities.browserless) {
+} else if (capabilities.browserless) {
   use_push_state = false;
-} else if(window.navigator.standalone) {
+} else if (window.navigator.standalone) {
   use_push_state = false;
-} else if(check_full_screen) { // TODO: check if full screen launch on android
+} else if (check_full_screen) { // TODO: check if full screen launch on android
   use_push_state = false;
 }
-if(Ember.testing) {
+if (Ember.testing) {
   config.locationType = 'none';
-} else if(capabilities.installed_app) {
+} else if (capabilities.installed_app) {
   config.locationType = 'hash';
-} else if(use_push_state) {
+} else if (use_push_state) {
   config.locationType = 'history';
 }
 const Router = EmberRouter.extend({
@@ -28,8 +28,8 @@ const Router = EmberRouter.extend({
 });
 
 Router.reopen({
-  notifyGoogleAnalytics: on('didTransition', function() {
-    if(window.ga) {
+  notifyGoogleAnalytics: on('didTransition', function () {
+    if (window.ga) {
       return window.ga('send', 'pageview', {
         'page': this.get('url'),
         'title': this.get('url')
@@ -38,7 +38,7 @@ Router.reopen({
   })
 });
 
-Router.map(function() {
+Router.map(function () {
   this.route('jasmine');
   this.route('index', { path: '/' });
   this.route('about', { path: '/about' });
@@ -55,7 +55,7 @@ Router.map(function() {
   this.route('inflections', { path: '/inflections' });
   this.route('inflections', { path: '/inflections/:ref/:locale' });
   this.route('old_search', { path: '/search/:q' });
-  this.route('utterance-reply', { path: '/u/:reply_code'})
+  this.route('utterance-reply', { path: '/u/:reply_code' })
   this.route('login');
   this.route('register');
   this.route('intro');
@@ -65,12 +65,12 @@ Router.map(function() {
   this.route('partners');
   this.route('compare');
   this.route('ambassadors');
-  this.route('limited', {path: '/limited'});
+  this.route('limited', { path: '/limited' });
   this.route('utterance', { path: '/utterances/:id' });
   this.route('start_codes', { path: '/start_codes/:id' });
   this.route('admin', { path: '/admin' });
-  this.route('lesson', { path: '/lessons/:lesson_id/:lesson_code/:user_token'});
-  this.route('organization', { path: '/organizations/:id' }, function() {
+  this.route('lesson', { path: '/lessons/:lesson_id/:lesson_code/:user_token' });
+  this.route('organization', { path: '/organizations/:id' }, function () {
     this.route('reports');
     this.route('subscription');
     this.route('extras');
@@ -79,17 +79,17 @@ Router.map(function() {
     this.route('settings');
     this.route('room', { path: '/rooms/:room_id' });
   });
-  this.route('goals', { path: '/goals' }, function() {
-      this.route('goal', { path: '/:goal_id' });
+  this.route('goals', { path: '/goals' }, function () {
+    this.route('goal', { path: '/:goal_id' });
   });
   this.route('redeem', { path: '/redeem' });
   this.route('redeem_with_code', { path: '/redeem/:code' });
   this.route('gift_purchase', { path: '/gift' });
-  this.route('bulk_purchase', { path: '/purchase/:id'});
+  this.route('bulk_purchase', { path: '/purchase/:id' });
   this.route('troubleshooting', { path: '/troubleshooting' });
   this.route('offline_boards', { path: '/offline-boards' });
-  this.route('profile', { path: '/profile/:user_id/:profile_id'});
-  this.route('user', { resetNamespace: true, path: '/:user_id' }, function() {
+  this.route('profile', { path: '/profile/:user_id/:profile_id' });
+  this.route('user', { resetNamespace: true, path: '/:user_id' }, function () {
     this.route('edit');
     this.route('preferences');
     this.route('subscription');
@@ -107,13 +107,11 @@ Router.map(function() {
     this.route('confirm_registration', { path: '/confirm_registration/:code' });
     this.route('password_reset', { path: '/password_reset/:code' });
   });
-  this.route('setup', { path: '/setup'});
-  this.route('board', { resetNamespace: true, path: '/*key'}, function() {
-//    this.route('error');
+  this.route('setup', { path: '/setup' });
+  this.route('board', { resetNamespace: true, path: '/*key' }, function () {
+    //    this.route('error');
     this.route('stats');
     this.route('history');
   });
-//  this.route('board_error');
+  //  this.route('board_error');
 });
-
-export default Router;
