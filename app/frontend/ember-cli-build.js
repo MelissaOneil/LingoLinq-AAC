@@ -1,17 +1,17 @@
 /* global require, module */
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 
-module.exports = function(defaults) {
+module.exports = function (defaults) {
   var app = new EmberApp(defaults, {
     sourcemaps: {
       enabled: false
     },
     storeConfigInMeta: false,
-//    vendorFiles: {
-//      'handlebars.js': null,
-//      'ember.js': 'bower_components/ember/ember.prod.js',
-//      'ember-data.js': 'bower_components/ember-data/ember-data.prod.js'
-//    },
+    //    vendorFiles: {
+    //      'handlebars.js': null,
+    //      'ember.js': 'bower_components/ember/ember.prod.js',
+    //      'ember-data.js': 'bower_components/ember-data/ember-data.prod.js'
+    //    },
     fingerprint: {
       enabled: false
     },
@@ -40,6 +40,7 @@ module.exports = function(defaults) {
   app.import('bower_components/jquery-minicolors/jquery.minicolors.css');
 
   // Import JS files
+  app.import('bower_components/jquery/dist/jquery.min.js');
   app.import('bower_components/IndexedDBShim/dist/indexeddbshim.min.js');
   // Hammer-Time causes a weird bug in Windows Chrome where if you
   // tap a dropdown, when you touch (not mouse) the element within the dropdown, it
@@ -47,7 +48,7 @@ module.exports = function(defaults) {
   // matching the coordinates of the touch relative to the top left corner of
   // the dropdown list. This typically results in a click on the "home"
   // link in the top right corner of the app.
-//  app.import('bower_components/hammer-time/hammer-time.js');
+  //  app.import('bower_components/hammer-time/hammer-time.js');
   app.import('bower_components/qrcode-js/qrcode.js');
   app.import('bower_components/moment/moment.js');
   app.import('bower_components/tinycolor/tinycolor.js');
