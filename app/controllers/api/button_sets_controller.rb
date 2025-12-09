@@ -60,6 +60,30 @@ class Api::ButtonSetsController < ApplicationController
       return
     else
       user_id = @api_user ? @api_user.global_id : nil
+      
+      # Safe Synchronous Debug Mode (Runtime Only)
+      # Only runs if explicitly requested via param, avoiding boot-time side effects
+      if params[:debug_sync] == "1"
+        Rails.logger.warn "SYNC DEBUG: Starting synchronous ButtonSet generation for #{board.global_id}"
+        begin
+          result = BoardDownstreamButtonSet.generate_for(board.global_id, user_id)
+          Rails.logger.warn "SYNC DEBUG: Generation result: #{result.inspect}"
+          
+          if result[:success] && result[:url]
+            render json: {exists: true, id: params['id'], url: result[:url]}
+          else
+            render json: {error: "Generation failed", details: result}, status: 500
+          end
+          return # Stop execution here for sync mode
+        rescue => e
+          Rails.logger.error "SYNC DEBUG ERROR: #{e.message}"
+          Rails.logger.error e.backtrace.join("\n")
+          render json: {error: e.message, backtrace: e.backtrace}, status: 500
+          return # Stop execution here for sync mode
+        end
+      end
+
+      # Default Async Behavior (Restored)
       progress = Progress.schedule(BoardDownstreamButtonSet, :generate_for, board.global_id, user_id)
       render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
     end

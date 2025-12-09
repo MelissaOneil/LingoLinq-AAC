@@ -362,24 +362,52 @@ module Uploader
     found_words = {}
     found_words = cache.find_words(words, user) if cache && (!user || !user.subscription_hash['skip_cache'])
     if ['noun-project', 'sclera', 'arasaac', 'mulberry', 'tawasol', 'twemoji', 'opensymbols', 'pcs', 'symbolstix'].include?(library)
-      token = ENV['OPENSYMBOLS_TOKEN']
-      protected_source = nil
-      if library == 'pcs' && user && user.subscription_hash['extras_enabled']
-        token += ":pcs"
-        protected_source = 'pcs'
-      elsif library == 'symbolstix' && user && user.subscription_hash['extras_enabled']
-        token += ":symbolstix"
-        protected_source = 'symbolstix'
+      # Use OpenSymbols v2 API if OPENSYMBOLS_SECRET is configured
+      if ENV['OPENSYMBOLS_SECRET'].present?
+        require 'open_symbols' unless defined?(OpenSymbols)
+        
+        protected_source = nil
+        if library == 'pcs' && user && user.subscription_hash['extras_enabled']
+          protected_source = 'pcs'
+        elsif library == 'symbolstix' && user && user.subscription_hash['extras_enabled']
+          protected_source = 'symbolstix'
+        end
+        
+        list = words - found_words.keys
+        results = {}
+        
+        if library == 'opensymbols'
+          # The 'opensymbols' meta-repo doesn't support the defaults endpoint,
+          # iterate and search for each word individually
+          list.each do |word|
+            search_results = OpenSymbols.search(word, locale: locale)
+            results[word] = search_results.first if search_results.any?
+          end
+        else
+          # Use the bulk defaults endpoint for specific repositories
+          results = OpenSymbols.defaults(library, list, locale)
+        end
+      else
+        # Fallback to v1 API with OPENSYMBOLS_TOKEN
+        token = ENV['OPENSYMBOLS_TOKEN']
+        protected_source = nil
+        if library == 'pcs' && user && user.subscription_hash['extras_enabled']
+          token += ":pcs"
+          protected_source = 'pcs'
+        elsif library == 'symbolstix' && user && user.subscription_hash['extras_enabled']
+          token += ":symbolstix"
+          protected_source = 'symbolstix'
+        end
+        url = "https://www.opensymbols.org/api/v2/repositories/#{library}/defaults"
+        res = Typhoeus.post(url, body: {
+          words: list,
+          allow_search: find_missing,
+          locale: locale,
+          search_token: token
+        }.to_json, headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json' }, timeout: 10, :ssl_verifypeer => false)
+        results = {}
+        results = JSON.parse(res.body) unless res.code >= 400
       end
-      url = "https://www.opensymbols.org/api/v2/repositories/#{library}/defaults"
-      res = Typhoeus.post(url, body: {
-        words: words - found_words.keys,
-        allow_search: find_missing,
-        locale: locale,
-        search_token: token
-      }.to_json, headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json' }, timeout: 10, :ssl_verifypeer => false)
-      results = {}
-      results = JSON.parse(res.body) unless res.code >= 400
       hash = {}
       found_words.each do |word, h|
         hash[word] = h if !h['missing']
@@ -401,6 +429,7 @@ module Uploader
         next unless words.include?(word)
         hash[word] = {
           'url' => obj['image_url'],
+          'image_url' => obj['image_url'],
           'thumbnail_url' => obj['image_url'],
           'content_type' => obj['content_type'],
           'width' => obj['width'],
@@ -551,50 +580,67 @@ module Uploader
         end
       end
     elsif ['noun-project', 'sclera', 'arasaac', 'mulberry', 'tawasol', 'twemoji', 'opensymbols', 'pcs', 'symbolstix'].include?(library)
-      str = keyword.to_s
-      if library == 'tawasol'
-        str += " favor:#{library}"
-      elsif library != 'opensymbols'
-        str += " repo:#{library}"
-      end
-      token = ENV['OPENSYMBOLS_TOKEN']
-      protected_source = nil
-      if library == 'pcs' && user && user.subscription_hash['extras_enabled']
-        token += ":pcs"
-        protected_source = 'pcs'
-      elsif library == 'symbolstix' && user && user.subscription_hash['extras_enabled']
-        token += ":symbolstix"
-        protected_source = 'symbolstix'
-      end
-      res = Typhoeus.get("https://www.opensymbols.org/api/v1/symbols/search?q=#{CGI.escape(str)}&search_token=#{token}", :ssl_verifypeer => false, timeout: 5)
-      results = JSON.parse(res.body) rescue []
-      results.each do |result|
-        if result['extension']
-          type = MIME::Types.type_for(result['extension'])[0]
-          result['content_type'] = type.content_type
+      # Use OpenSymbols v2 API if OPENSYMBOLS_SECRET is configured
+      # Otherwise fall back to v1 API with OPENSYMBOLS_TOKEN
+      if ENV['OPENSYMBOLS_SECRET'].present?
+        # Determine protected source for premium libraries
+        protected_source = nil
+        if library == 'pcs' && user && user.subscription_hash['extras_enabled']
+          protected_source = 'pcs'
+        elsif library == 'symbolstix' && user && user.subscription_hash['extras_enabled']
+          protected_source = 'symbolstix'
         end
-      end
-      list = []
-      results.each do |obj|
-        list << {
-          'url' => obj['image_url'],
-          'thumbnail_url' => obj['image_url'],
-          'content_type' => obj['content_type'],
-          'width' => obj['width'],
-          'height' => obj['height'],
-          'external_id' => obj['id'],
-          'public' => true,
-          'protected' => !!protected_source,
-          'protected_source' => protected_source,
-          'license' => {
-            'type' => obj['license'],
-            'copyright_notice_url' => obj['license_url'],
-            'source_url' => obj['source_url'],
-            'author_name' => obj['author'],
-            'author_url' => obj['author_url'],
-            'uneditable' => true
-          }
-        }        
+        
+        # Use the new OpenSymbols v2 API module
+        require 'open_symbols' unless defined?(OpenSymbols)
+        list = OpenSymbols.find_images(keyword, library, locale, protected_source: protected_source)
+      else
+        # Fall back to v1 API (legacy)
+        str = keyword.to_s
+        if library == 'tawasol'
+          str += " favor:#{library}"
+        elsif library != 'opensymbols'
+          str += " repo:#{library}"
+        end
+        token = ENV['OPENSYMBOLS_TOKEN']
+        protected_source = nil
+        if library == 'pcs' && user && user.subscription_hash['extras_enabled']
+          token += ":pcs"
+          protected_source = 'pcs'
+        elsif library == 'symbolstix' && user && user.subscription_hash['extras_enabled']
+          token += ":symbolstix"
+          protected_source = 'symbolstix'
+        end
+        res = Typhoeus.get("https://www.opensymbols.org/api/v1/symbols/search?q=#{CGI.escape(str)}&search_token=#{token}", :ssl_verifypeer => false, timeout: 5)
+        results = JSON.parse(res.body) rescue []
+        results.each do |result|
+          if result['extension']
+            type = MIME::Types.type_for(result['extension'])[0]
+            result['content_type'] = type.content_type
+          end
+        end
+        list = []
+        results.each do |obj|
+          list << {
+            'url' => obj['image_url'],
+            'thumbnail_url' => obj['image_url'],
+            'content_type' => obj['content_type'],
+            'width' => obj['width'],
+            'height' => obj['height'],
+            'external_id' => obj['id'],
+            'public' => true,
+            'protected' => !!protected_source,
+            'protected_source' => protected_source,
+            'license' => {
+              'type' => obj['license'],
+              'copyright_notice_url' => obj['license_url'],
+              'source_url' => obj['source_url'],
+              'author_name' => obj['author'],
+              'author_url' => obj['author_url'],
+              'uneditable' => true
+            }
+          }        
+        end
       end
     end
     cache = library.instance_variable_get('@library_cache')

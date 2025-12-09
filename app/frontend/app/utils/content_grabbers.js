@@ -612,9 +612,19 @@ var pictureGrabber = EmberObject.extend({
       uneditable: true
     };
 
+    // Validate URLs - ensure we have a valid image URL
+    var image_url = preview.image_url || preview.url || preview.thumbnail_url;
+    var save_url = preview.to_save_url || image_url;
+
+    // Verify we have a valid HTTP(S) URL
+    if(!image_url || !image_url.match(/^https?:\/\//)) {
+      console.error('Invalid image URL in pick_preview:', preview);
+      return; // Don't set preview with invalid URL
+    }
+
     this.controller.set('image_preview', {
-      url: preview.image_url,
-      save_url: preview.to_save_url,
+      url: image_url,
+      save_url: save_url,
       search_term: this.controller.get('image_search.term'),
       hc: preview.hc,
       external_id: preview.id,
@@ -703,6 +713,11 @@ var pictureGrabber = EmberObject.extend({
         which_skin = LingoLinq.Board.which_skinner(s);
       }
       data.forEach(function(img) {
+        // Always set to_save_url to preserve the original URL
+        if(!img.to_save_url) {
+          img.to_save_url = img.url || img.image_url;
+        }
+
         if(img.skins) {
           if(skin && skin != 'default') {
             img.image_url = LingoLinq.Board.skinned_url(img.image_url, which_skin);
@@ -1029,6 +1044,13 @@ var pictureGrabber = EmberObject.extend({
     var label = button && button.label;
     var save_image = image_load.then(function(data) {
       var url = preview.save_url || preview.url;
+
+      // Validate URL before saving
+      if(!url || !url.match(/^https?:\/\//)) {
+        console.error('Invalid URL in save_image_preview:', url, preview);
+        return RSVP.reject({error: 'invalid image URL'});
+      }
+
       var image = LingoLinq.store.createRecord('image', {
         url: persistence.normalize_url(url),
         content_type: preview.content_type,
