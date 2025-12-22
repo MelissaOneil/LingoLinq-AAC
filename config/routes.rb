@@ -152,7 +152,6 @@ LingoLinq::Application.routes.draw do
   get 'api/v1/status/heartbeat' => 'session#heartbeat'
   
   scope 'api/v1', module: 'api' do
-    get 'users/cache' => 'boards#cache'
     post 'forgot_password' => 'users#forgot_password'
     post 'messages' => 'messages#create'
     post 'callback' => 'callbacks#callback'
