@@ -1065,9 +1065,9 @@
 {{outlet 'board-preview'}}
 {{outlet 'flash-message'}}
 {{#if setup_footer}}
-  <SetupFooter />
+  {{setup-footer}}
 {{else if footer}}
-  <Footer />
+  {{footer}}
 {{/if}}
 {{#unless app_state.testing}}
   {{#unless app_state.installed_app}}
