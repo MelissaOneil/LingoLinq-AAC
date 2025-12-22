@@ -15,6 +15,7 @@ if(location.pathname.match(/^\/jasmine/)) {
 } else if(check_full_screen) { // TODO: check if full screen launch on android
   use_push_state = false;
 }
+// eslint-disable-next-line ember/no-ember-testing-in-module-scope
 if(Ember.testing) {
   config.locationType = 'none';
 } else if(capabilities.installed_app) {
