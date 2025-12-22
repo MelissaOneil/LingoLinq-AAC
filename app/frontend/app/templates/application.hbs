@@ -99,7 +99,7 @@
           {{/if}}
         {{/unless}}
         {{#with app_state.button_list as |button_list|}}
-          {{partial "button-list"}}
+          <ButtonList @buttons={{button_list}} />
         {{/with}}
       </a>
       {{#unless app_state.button_list}}

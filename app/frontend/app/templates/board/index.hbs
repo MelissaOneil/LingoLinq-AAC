@@ -104,7 +104,7 @@
               <div class="button_row">
                 {{#each row as |button|}}
                   <!-- NOTE: this is noticeably slow on Chrome, only when debugger is open... -->
-                  {{partial "button"}}
+                  <BoardButton @button={{button}} @app_state={{app_state}} @editModeNormalText={{editModeNormalText}} @text_only_button_symbol_class={{text_only_button_symbol_class}} @button_symbol_class={{button_symbol_class}} />
                 {{/each}}
               </div>
             {{/each}}

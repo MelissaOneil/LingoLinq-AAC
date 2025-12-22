@@ -30,7 +30,7 @@
       {{else}}
         <div id="utterance" class="button_list" {{ action "vocalize"}}>
           {{#with model.button_list as |button_list|}}
-            {{partial "button-list"}}
+            <ButtonList @buttons={{button_list}} />
           {{/with}}
         </div>
       {{/if}}

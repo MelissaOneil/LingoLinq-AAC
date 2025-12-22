@@ -8,7 +8,7 @@
       {{#with model as |board|}}
         {{#each button_stashes as |button|}}
           <span class="stash_button_container" {{action "pickButton" button}}>
-            {{partial "button"}}
+            <BoardButton @button={{button}} @app_state={{app_state}} @editModeNormalText={{editModeNormalText}} @text_only_button_symbol_class={{text_only_button_symbol_class}} @button_symbol_class={{button_symbol_class}} />
           </span>
         {{/each}}
       {{/with}}

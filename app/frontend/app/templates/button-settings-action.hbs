@@ -58,7 +58,7 @@
                 {{#with confirm_found_board as |board|}}
                   <div class="col-sm-4">
                     <span class="well well-sm board_icon">
-                      {{partial "board-icon-without-link"}}
+                      <BoardIconWithoutLink @board={{board}} />
                     </span>
                   </div>
                   <div class="col-sm-12">
