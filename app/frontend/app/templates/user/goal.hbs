@@ -283,7 +283,7 @@
       </thead>
       <tbody>
         {{#each logs as |log|}}
-          {{partial 'log'}}
+          <Log @log={{log}} />
         {{/each}}
         {{#unless logs}}
           <tr>

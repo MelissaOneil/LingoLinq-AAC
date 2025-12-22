@@ -20,7 +20,7 @@
   {{#with hierarchy.root as |board|}}
     <div class="board_hierarchy" style='margin-top: 10px;'>
       <ul>
-        {{partial "recursive-board"}}
+        <RecursiveBoard @board={{board}} />
       </ul>
     </div>
   {{/with}}

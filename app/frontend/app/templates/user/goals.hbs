@@ -10,7 +10,7 @@
   {{else}}
     {{#if primary_goal}}
       {{#with primary_goal as |goal|}}
-        {{partial "goal_in_list"}}
+        <GoalInList @goal={{goal}} />
       {{/with}}
     {{else if any_goal}}
       <p>{{t "No primary goal set" key='no_primary_goal_set'}}</p>
@@ -48,7 +48,7 @@
       <h3>{{t "Secondary Goals" key='secondary_goals'}}</h3>
       {{#if secondary_goals}}
         {{#each secondary_goals as |goal|}}
-          {{partial "goal_in_list"}}
+          <GoalInList @goal={{goal}} />
         {{/each}}
       {{else}}
         {{t "None Set" key='none_set'}}
@@ -56,7 +56,7 @@
       <h3>{{t "Past Goals" key='past_goals'}}</h3>
       {{#if past_goals}}
         {{#each past_goals as |goal|}}
-          {{partial "goal_in_list"}}
+          <GoalInList @goal={{goal}} />
         {{/each}}
       {{else}}
         {{t "No past goals" key='no_past_goals'}}

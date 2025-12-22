@@ -52,7 +52,7 @@
     </ul>
   </div>
   <div class="col-md-3 col-sm-12 wide_bio hide_print">
-    {{partial "user_summary"}}
+    <UserSummary />
     {{#if model.permissions.supervise}}
       <div class="btn-group-vertical" style="width: 100%;">
         <!-- TODO: since we're not using ids these won't add 'active' class until clicked. need workaround -->

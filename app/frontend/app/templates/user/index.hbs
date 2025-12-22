@@ -1,5 +1,5 @@
 <div class="skinny_bio">
-  {{partial 'user_summary'}}
+  <UserSummary />
 </div>
 {{#if model.permissions.view_detailed}}
   {{#if model.permissions.delete}}
@@ -445,7 +445,7 @@
           {{else if model.badges}}
             <div>
             {{#each model.badges as |badge|}}
-              {{partial 'badge-in-list'}}
+              <BadgeInList @badge={{badge}} />
             {{/each}}
             </div>
             <div style='clear: left;'></div>

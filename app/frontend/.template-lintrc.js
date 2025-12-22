@@ -12,6 +12,6 @@ module.exports = {
     'no-html-comments': false,
     'link-rel-noopener': false,
     'no-invalid-interactive': false, // TODO: this seems busted
-    'no-partial': false, // TODO: clean these up soon
+    'no-partial': 'error', // All partials converted to components for Ember 3.16
   }
 };

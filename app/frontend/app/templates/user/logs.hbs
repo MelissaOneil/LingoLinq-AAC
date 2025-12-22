@@ -114,7 +114,7 @@
             </tr>
           {{/if}}
           {{#each logs as |log|}}
-            {{partial 'log'}}
+            <Log @log={{log}} />
           {{/each}}
         </tbody>
       </table>
