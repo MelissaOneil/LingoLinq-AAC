@@ -22,7 +22,23 @@ import { observer } from '@ember/object';
 import { computed } from '@ember/object';
 
 LingoLinq.User = DS.Model.extend({
-  didLoad: function() {
+  init: function() {
+    this._super(...arguments);
+    this._hasLoadObserver = false;
+    if(this.get('isLoaded')) {
+      this._handleInitialLoad();
+    } else {
+      this._hasLoadObserver = true;
+      this.addObserver('isLoaded', this, this._handleInitialLoad);
+    }
+  },
+  _handleInitialLoad: function() {
+    if(this._handledInitialLoad || !this.get('isLoaded')) { return; }
+    if(this._hasLoadObserver) {
+      this.removeObserver('isLoaded', this, this._handleInitialLoad);
+      this._hasLoadObserver = false;
+    }
+    this._handledInitialLoad = true;
     this.checkForDataURL().then(null, function() { });
     if(this.get('preferences') && !this.get('preferences.stretch_buttons')) {
       this.set('preferences.stretch_buttons', 'none');

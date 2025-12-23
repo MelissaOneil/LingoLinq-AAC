@@ -113,8 +113,8 @@
               <td style="white-space: nowrap;">{{t "..." key='ellipsis'}}</td>
             </tr>
           {{/if}}
-          {{#each logs as |log|}}
-            <Log @log={{log}} />
+          {{#each logs as |logEntry|}}
+            <Log @log={{logEntry}} />
           {{/each}}
         </tbody>
       </table>

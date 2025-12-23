@@ -3169,7 +3169,8 @@ var persistence = EmberObject.extend({
     }
   }),
   check_for_new_version: observer('refresh_stamp', function() {
-    if(window.LingoLinq.update_version) {
+    // Guard against early runs before the global is defined (e.g. during boot).
+    if(window.LingoLinq && window.LingoLinq.update_version) {
       persistence.set('app_needs_update', true);
     }
   })

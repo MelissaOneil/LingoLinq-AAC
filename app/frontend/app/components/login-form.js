@@ -221,7 +221,7 @@ export default Component.extend({
     },
     login_followup: function(choice) {
       var _this = this;
-      LingoLinq.store.findRecord('user', 'self').then(function(u) {
+      LingoLinq.store.queryRecord('user', {id: 'self'}).then(function(u) {
         u.set('preferences.device.long_token', !!choice);
         u.set('preferences.device.asserted', true);
         u.save().then(function() {

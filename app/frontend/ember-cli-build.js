@@ -40,6 +40,8 @@ module.exports = function(defaults) {
   app.import('bower_components/jquery-minicolors/jquery.minicolors.css');
 
   // Import JS files
+  // Prepend so the shim defines `ember-babel` before vendor modules run
+  app.import('vendor/ember-babel-shim.js', { prepend: true });
   app.import('bower_components/IndexedDBShim/dist/indexeddbshim.min.js');
   // Hammer-Time causes a weird bug in Windows Chrome where if you
   // tap a dropdown, when you touch (not mouse) the element within the dropdown, it

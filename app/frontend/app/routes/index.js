@@ -16,7 +16,7 @@ import progress_tracker from '../utils/progress_tracker';
 export default Route.extend({
   model: function() {
     if(session.get('access_token')) {
-      return LingoLinq.store.findRecord('user', 'self').then(function(user) {
+      return LingoLinq.store.queryRecord('user', {id: 'self'}).then(function(user) {
         // notifications and logs should show up when you re-visit the dashboard
         if(!user.get('really_fresh') && persistence.get('online')) {
           user.reload();

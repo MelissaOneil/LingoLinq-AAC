@@ -282,8 +282,8 @@
         </tr>
       </thead>
       <tbody>
-        {{#each logs as |log|}}
-          <Log @log={{log}} />
+        {{#each logs as |logEntry|}}
+          <Log @log={{logEntry}} />
         {{/each}}
         {{#unless logs}}
           <tr>

@@ -11,7 +11,23 @@ import RSVP from 'rsvp';
 import persistence from '../utils/persistence';
 
 LingoLinq.Log = DS.Model.extend({
-  didLoad: function() {
+  init: function() {
+    this._super(...arguments);
+    this._logHasLoadObserver = false;
+    if(this.get('isLoaded')) {
+      this._logHandleInitialLoad();
+    } else {
+      this._logHasLoadObserver = true;
+      this.addObserver('isLoaded', this, this._logHandleInitialLoad);
+    }
+  },
+  _logHandleInitialLoad: function() {
+    if(this._logHandledInitialLoad || !this.get('isLoaded')) { return; }
+    if(this._logHasLoadObserver) {
+      this.removeObserver('isLoaded', this, this._logHandleInitialLoad);
+      this._logHasLoadObserver = false;
+    }
+    this._logHandledInitialLoad = true;
     this.check_for_events();
   },
   type: DS.attr('string'),

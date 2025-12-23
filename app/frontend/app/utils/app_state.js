@@ -229,7 +229,7 @@ var app_state = EmberObject.extend({
       // or has a spotty connection, then looking up the user will not succeed, and
       // the app will force a logout unexpectedly.
       var find_user = function(last_try) {
-        var find = LingoLinq.store.findRecord('user', 'self');
+        var find = LingoLinq.store.queryRecord('user', {id: 'self'});
 
         find.then(function(user) {
           console.log("user initialization working..");
@@ -1302,7 +1302,7 @@ var app_state = EmberObject.extend({
     }, 1000);
   },
   refresh_session_user: function() {
-    LingoLinq.store.findRecord('user', 'self').then(function(user) {
+    LingoLinq.store.queryRecord('user', {id: 'self'}).then(function(user) {
       if(!user.get('fresh')) {
         user.reload().then(function(user) {
           user.set('modeling_session', session.get('modeling_session'));

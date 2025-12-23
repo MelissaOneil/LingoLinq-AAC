@@ -1,3 +1,72 @@
+// Polyfill missing Babel helpers before anything else runs
+// eslint-disable-next-line no-inner-declarations
+function arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) {
+    len = arr.length;
+  }
+  var newArray = new Array(len);
+  for (var i = 0; i < len; i++) {
+    newArray[i] = arr[i];
+  }
+  return newArray;
+}
+
+// eslint-disable-next-line no-inner-declarations
+function unsupportedIterableToArray(obj, minLen) {
+  if (!obj) {
+    return;
+  }
+  if (typeof obj === 'string') {
+    return arrayLikeToArray(obj, minLen);
+  }
+  var type = Object.prototype.toString.call(obj).slice(8, -1);
+  if (type === 'Object' && obj.constructor) {
+    type = obj.constructor.name;
+  }
+  if (type === 'Map' || type === 'Set') {
+    return Array.from(obj);
+  }
+  if (/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(type)) {
+    return arrayLikeToArray(obj, minLen);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  if (!window._emberBabelPolyfilled) {
+    window._emberBabelPolyfilled = true;
+    // Try to polyfill ember-babel module if available
+    try {
+      if (typeof window.require === 'function') {
+        var EmberBabel = window.require('ember-babel');
+        if (EmberBabel) {
+          var target = EmberBabel.default || EmberBabel;
+          if (!target.arrayLikeToArray) {
+            target.arrayLikeToArray = arrayLikeToArray;
+          }
+          if (!target.unsupportedIterableToArray) {
+            target.unsupportedIterableToArray = unsupportedIterableToArray;
+          }
+        }
+      }
+    } catch (e) {
+      // Continue if module loading fails
+    }
+  }
+}
+
+// Runtime assert: confirm ember-babel helpers exist before templates execute
+try {
+  if (typeof window !== 'undefined' && typeof window.require === 'function') {
+    var EB = window.require('ember-babel');
+    var ebTarget = EB && (EB.default || EB);
+    // eslint-disable-next-line no-console
+    console.log('[ember-babel] helpers:', {
+      arrayLikeToArray: ebTarget && typeof ebTarget.arrayLikeToArray,
+      unsupportedIterableToArray: ebTarget && typeof ebTarget.unsupportedIterableToArray
+    });
+  }
+} catch (_e) {}
+
 import Ember from 'ember';
 import EmberApplication from '@ember/application';
 import { later as RunLater } from '@ember/runloop';
