@@ -1,3 +1,4 @@
+/* global $ */
 import Ember from 'ember';
 import EmberObject from '@ember/object';
 import { set as emberSet, get as emberGet } from '@ember/object';
@@ -6,7 +7,6 @@ import {
   cancel as runCancel,
   run
 } from '@ember/runloop';
-import $ from 'jquery';
 import RSVP from 'rsvp';
 import LingoLinq from '../app';
 import lingoLinqExtras from './extras';
@@ -3037,19 +3037,20 @@ var persistence = EmberObject.extend({
             resolve(data);
           });
         }, function(xhr) {
-          // TODO: for some reason, safari returns the promise instead of the promise's
-          // result to this handler. I'm sure it's something I'm doing wrong, but I haven't
-          // been able to figure it out yet. This is a band-aid.
-          if(xhr.then) { console.log("received the promise instead of the promise's result.."); }
-          var promise = xhr.then ? xhr : RSVP.reject(xhr);
-          promise.then(null, function(xhr) {
-            var allow_offline_error = false;
-            if(allow_offline_error) { // TODO: check for offline error in xhr
-              reject(xhr, {offline: true, error: "not online"});
-            } else {
-              reject(xhr);
-            }
-          });
+          // jQuery's xhr object is thenable, so we check for status to confirm it's a jqXHR
+          // and not just a promise returned by a buggy browser behavior.
+          if(xhr.then && typeof xhr.status === 'undefined') { 
+            console.log("received the promise instead of the promise's result.."); 
+            xhr.then(function(res) {
+               // handling if the promise resolves to the xhr/result
+               // This path is for the legacy weirdness
+               reject(res); 
+            }, function(actualXhr) {
+               reject(actualXhr);
+            });
+            return;
+          }
+          reject(xhr);
         });
       });
     } else {
