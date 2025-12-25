@@ -1,6 +1,6 @@
+/* global $ */
 import Ember from 'ember';
 import EmberApplication from '@ember/application';
-import $ from 'jquery';
 import { later as RunLater } from '@ember/runloop';
 import Route from '@ember/routing/route';
 import EmberObject from '@ember/object';
